@@ -9,12 +9,11 @@ const tweetSchema = new mongoose.Schema({
     userEMail: {
         type: String,
     },
+    // name and id of model -> using type and ref
     comments: [
         {
-            content: {
-                type: String,
-                required: true,
-            }
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment'
         }
     ]
 },  {timestamps: true});
