@@ -16,7 +16,18 @@ const tweetSchema = new mongoose.Schema({
             ref: 'Comment'
         }
     ]
-},  {timestamps: true});
+}, { timestamps: true });
+
+// does not persist in database
+tweetSchema.virtual('contentWithEmail').get(function process() {
+    return `${this.content} \nCreated by: ${this.userEmail}`;
+});
+
+// hooks
+tweetSchema.pre('save', function (next) {
+    this.content = this.content + '....';
+    next();
+});
 
 // automatically Pluralised collection name -> Tweets
 const Tweet = mongoose.model('Tweet', tweetSchema);
