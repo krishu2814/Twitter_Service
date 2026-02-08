@@ -28,12 +28,15 @@ class HashtagRepository {
         }
     };
 
+    // array of objects...
     async bulkCreate(data) { 
         try {
             const hashtag = await Hashtag.insertMany(data);
             return hashtag;
         } catch (error) {
-            console.log('Something went wrong in the repository layer.')
+            console.log('Something went wrong in the repository layer in bulk create.');
+            console.log(error);
+            throw { error };
         }
     };
 
@@ -49,3 +52,5 @@ class HashtagRepository {
     };
 
 }
+
+module.exports = HashtagRepository;

@@ -6,10 +6,12 @@ const hashtagSchema = new mongoose.Schema({
         required: true,
     },
     // association
-    tweets: {
+    tweets: [
+        {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tweet'
-    }
+        }
+    ]
 });
 
 const Hashtag = mongoose.model('Hashtag', hashtagSchema);
