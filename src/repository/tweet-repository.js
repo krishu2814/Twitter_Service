@@ -20,19 +20,6 @@ class TweetRepository{
         }
     }
 
-    async update(id, data) {
-        try {
-            // findByIdAndDelete -> returns old data by default
-            // { new : true } -> to get new updated data
-            const tweet = await Tweet.findByIdAndUpdate(id, {
-                content: data.content,
-            }, { new: true });
-            return tweet;
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     async destroy(id) {
         try {
             const tweet = await Tweet.findByIdAndDelete(id);
@@ -44,8 +31,21 @@ class TweetRepository{
 
     async getAll(offset, limit) {
         try {
+
+            // skip some documents and then send limited documents
             const tweet = await Tweet.find().skip(offset).limit(limit);
             return tweet;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async update(id, data) {
+        try {
+            const updatedTweet = await Tweet.findByIdAndUpdate(id, data, {
+                new: true, // returns updated document, if not then previous one
+            });
+            return updatedTweet;
         } catch (error) {
             console.log(error);
         }

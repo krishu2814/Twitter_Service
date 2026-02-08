@@ -10,6 +10,7 @@
 - We can comment on a comment
 - We can like any comment also
 - Retweeting
+- Find only tweets from the last 24 hours.
 
 - User profile:
     - Name
