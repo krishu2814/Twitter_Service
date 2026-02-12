@@ -1,6 +1,4 @@
-const { TweetRepository, HashtagRepository } = require('../repository/index')
-console.log(require('../repository/index'));
-
+const { TweetRepository, HashtagRepository } = require('../repository/index');
 
 class TweetService {
     constructor() {
@@ -9,29 +7,61 @@ class TweetService {
     }
 
     async create(data) {
-        const content = data.content;
+        const content = data.content || "";
 
-        // starts with # -> hashtag
-        const tags = content.match(/#[a-zA-Z0-9_]+/g).map((tag) => tag.substring(1)); // this regex extracts hashtags
+        // Extract hashtags
+        let tags = content.match(/#[a-zA-Z0-9_]+/g) || [];
+
+        // normalize + remove duplicates
+        tags = [...new Set(
+            tags.map(tag => tag.substring(1).toLowerCase())
+        )];
+
+        // create tweet
         const tweet = await this.tweetRepository.create(data);
-        // create hashtags and add here
-        /**
-         * 1. bulkcreate in mongoose -> insertMany()
-         * 2. filter title of hashing based on multiple tags -> using index
-         * 3. how to add tweet id inside all the hashtags
-         */
-        
-        let alreadyPresentTags = await this.hashtagRepository.findByName(tags); // alreaadyb present
-        let titleOfPresenttags = alreadyPresentTags.map(tags => tags.title); // title
-        let newTags = tags.filter(tag => !titleOfPresenttags.includes(tag)); // not present
-        newTags = newTags.map(tag => {
-            return {title: tag, tweets: [tweet.id]}
-        });
-        await this.hashtagRepository.bulkCreate(newTags); // create hashtag in bulk
-        alreadyPresentTags.forEach((tag) => {
-            tag.tweets.push(tweet.id);
-            tag.save();
-        });
+
+        if (!tags.length) return tweet;
+
+        // find existing hashtags
+        const alreadyPresentTags =
+            await this.hashtagRepository.findByName(tags);
+
+        const presentTitles =
+            alreadyPresentTags.map(tag => tag.title);
+
+        // new hashtags
+        const newTagsData = tags
+            .filter(tag => !presentTitles.includes(tag))
+            .map(tag => ({
+                title: tag,
+                tweets: [tweet._id]
+            }));
+
+        let createdTags = [];
+        if (newTagsData.length) {
+            createdTags =
+                await this.hashtagRepository.bulkCreate(newTagsData);
+        }
+
+        // update existing hashtags safely
+        await Promise.all(
+            alreadyPresentTags.map(tag =>
+                this.hashtagRepository.addTweetToTag(
+                    tag._id,
+                    tweet._id
+                )
+            )
+        );
+
+        // add hashtag refs to tweet
+        const allTags = [
+            ...alreadyPresentTags,
+            ...createdTags
+        ];
+
+        tweet.hashtags = allTags.map(tag => tag._id);
+        await tweet.save();
+
         return tweet;
     }
 }

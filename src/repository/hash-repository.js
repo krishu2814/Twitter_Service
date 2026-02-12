@@ -41,14 +41,20 @@ class HashtagRepository {
     };
 
     async findByName(titleList) { 
-        try {
-            const hashtag = await Hashtag.find({
-                title: titleList, // find using specific attribute of model
-            }).select('title -_id'); // only title and no id
-            return hashtag;
-        } catch (error) {
-            console.log('Something went wrong in the repository layer.')
-        }
+    try {
+        const hashtag = await Hashtag.find({
+            title: { $in: titleList }
+        });
+        return hashtag;
+    } catch (error) {
+        console.log('Something went wrong in repository layer.');
+        throw error;
+    }
+    }
+
+
+    async addTweetToTag(tagId, tweetId) {
+        return Hashtag.updateOne({ _id: tagId },{ $addToSet: { tweets: tweetId } });
     };
 
 }

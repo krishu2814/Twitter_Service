@@ -1,4 +1,4 @@
-const TweetService = require('../service/index');
+const { TweetService } = require('../services/index');
 
 class TweetController {
     constructor() {
@@ -16,6 +16,7 @@ class TweetController {
                 err: {},
             });
         } catch (error) {
+            console.error(error);
             return res.status(500).json({
                 success: false,
                 message: "Something went wrong in the controllers.",
@@ -27,4 +28,4 @@ class TweetController {
 
 }
 
-module.exports = TweetController;
+module.exports = new TweetController();
