@@ -1,8 +1,11 @@
-const { TweetRespository } = require('../repository/index')
+const { TweetRepository, HashtagRepository } = require('../repository/index')
+console.log(require('../repository/index'));
+
 
 class TweetService {
     constructor() {
-        this.tweetRepository = new TweetRespository();
+        this.tweetRepository = new TweetRepository();
+        this.hashtagRepository = new HashtagRepository();
     }
 
     async create(data) {
@@ -17,6 +20,18 @@ class TweetService {
          * 2. filter title of hashing based on multiple tags -> using index
          * 3. how to add tweet id inside all the hashtags
          */
+        
+        let alreadyPresentTags = await this.hashtagRepository.findByName(tags); // alreaadyb present
+        let titleOfPresenttags = alreadyPresentTags.map(tags => tags.title); // title
+        let newTags = tags.filter(tag => !titleOfPresenttags.includes(tag)); // not present
+        newTags = newTags.map(tag => {
+            return {title: tag, tweets: [tweet.id]}
+        });
+        await this.hashtagRepository.bulkCreate(newTags); // create hashtag in bulk
+        alreadyPresentTags.forEach((tag) => {
+            tag.tweets.push(tweet.id);
+            tag.save();
+        });
         return tweet;
     }
 }
